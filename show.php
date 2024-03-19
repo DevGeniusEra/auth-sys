@@ -40,6 +40,7 @@ $comments = $comments->fetchAll(PDO::FETCH_OBJ);
     <button name="submit" id="submit" class="w-100 btn btn-lg btn-primary mt-5" type="submit">Create comment</button>
   </form>
   <div id="msg" class="nothing"></div>
+  <div id="delete-msg" class="nothing"></div>
 </div>
 <div class="row">
   <?php foreach ($comments as $singleComment) : ?>
@@ -47,31 +48,48 @@ $comments = $comments->fetchAll(PDO::FETCH_OBJ);
       <div class="card-body">
         <h5 class="card-title"><?php echo $singleComment->username; ?></h5>
         <p class="card-text"><?php echo $singleComment->comment; ?></p>
+        <button id="delete-btn" value="<?php echo $singleComment->id; ?> " class="btn btn-danger mt-5">Delete </button>
+
       </div>
     </div>
   <?php endforeach; ?>
 </div>
 <?php require "includes/footer.php"; ?>
 <script>
-  $(document).ready(function() {
-    $('#comment_data').on('submit', function(e) {
-      e.preventDefault(); // Prevent the default form submission
-      var formdata = $(this).serialize() + '&submit=submit';
-      $.ajax({
-        type: 'post',
-        url: 'insert-comments.php',
-        data: formdata,
-        success: function() {
-          $('#comment').val(''); // Clear the comment textarea
-          $('#msg').html('Added Successfully').addClass('alert alert-success bg-success text-white mt-3');
-          fetch();
-        }
-      });
+  $(document).on('submit', function(e) {
+    e.preventDefault(); // Prevent the default form submission
+    var formdata = $(this).serialize() + '&submit=submit';
+    $.ajax({
+      type: 'post',
+      url: 'insert-comments.php',
+      data: formdata,
+      success: function() {
+        $('#comment').val(''); // Clear the comment textarea
+        $('#msg').html('Added Successfully').addClass('alert alert-success bg-success text-white mt-3');
+        fetch();
+      }
     });
   });
-  function fetch(){
-    setInterval(function(){
-      $("body").load("show.php?id=<?php echo$_GET['id']; ?>")
+  $("#delete-btn").on('click', function(e) {
+    e.preventDefault(); // Prevent the default form submission
+    var id = $(this).val();
+    $.ajax({
+      type: 'post',
+      url: 'delete-comment.php',
+      data: {
+        delete: 'delete',
+        id: id
+      },
+      success: function() {
+        $('#delete-msg').html('Deleted Successfully').toggleClass('alert alert-success bg-success text-white mt-3');
+        fetch();
+      }
+    });
+  });
+
+  function fetch() {
+    setInterval(function() {
+      $("body").load("show.php?id=<?php echo $_GET['id']; ?>")
     }, 4000);
   }
 </script>
