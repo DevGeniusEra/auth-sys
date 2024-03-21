@@ -48,26 +48,29 @@ $comments = $comments->fetchAll(PDO::FETCH_OBJ);
       <div class="card-body">
         <h5 class="card-title"><?php echo $singleComment->username; ?></h5>
         <p class="card-text"><?php echo $singleComment->comment; ?></p>
-        <button id="delete-btn" value="<?php echo $singleComment->id; ?> " class="btn btn-danger mt-5">Delete </button>
-
+        <?php if (isset($_SESSION['username']) and $_SESSION['username'] == $singleComment->username) : ?>
+          <button id="delete-btn" value="<?php echo $singleComment->id; ?> " class="btn btn-danger mt-5">Delete </button>
+        <?php endif; ?>
       </div>
     </div>
   <?php endforeach; ?>
 </div>
 <?php require "includes/footer.php"; ?>
 <script>
-  $(document).on('submit', function(e) {
-    e.preventDefault(); // Prevent the default form submission
-    var formdata = $(this).serialize() + '&submit=submit';
-    $.ajax({
-      type: 'post',
-      url: 'insert-comments.php',
-      data: formdata,
-      success: function() {
-        $('#comment').val(''); // Clear the comment textarea
-        $('#msg').html('Added Successfully').addClass('alert alert-success bg-success text-white mt-3');
-        fetch();
-      }
+  $(document).ready(function() {
+    $(document).on('submit', function(e) {
+      e.preventDefault(); // Prevent the default form submission
+      var formdata = $("#comment_data").serialize() + '&submit=submit';
+      $.ajax({
+        type: 'post',
+        url: 'insert-comments.php',
+        data: formdata,
+        success: function() {
+          $('#comment').val(''); // Clear the comment textarea
+          $('#msg').html('Added Successfully').addClass('alert alert-success bg-success text-white mt-3');
+          fetch();
+        }
+      });
     });
   });
   $("#delete-btn").on('click', function(e) {
