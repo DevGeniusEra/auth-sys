@@ -10,14 +10,23 @@ if (isset($_GET['id'])) {
 }
 $comments = $conn->prepare("SELECT * FROM comments WHERE post_id = :post_id");
 $comments->execute([':post_id' => $id]);
-
 $comments = $comments->fetchAll(PDO::FETCH_OBJ);
+
+$ratings = $conn->prepare("SELECT * FROM rates WHERE post_id = '$id' AND user_id='$_SESSION[user_id]'");
+$ratings->execute();
+$rating = $ratings->fetch(PDO::FETCH_OBJ);
 ?>
 <div class="row">
   <div class="card mt-5">
     <div class="card-body">
       <h5 class="card-title"><?php echo $posts->title; ?></h5>
       <p class="card-text"><?php echo $posts->body; ?></p>
+      <form id="formdata" method="post">
+        <div class="my-rating"></div>
+        <input id="rating" type="hidden" name="rating">
+        <input id="post_id" type="hidden" name="post_id" value="<?php echo $posts->id; ?>">
+        <input id="user_id" type="hidden" name="user_id" value="<?php echo $_SESSION['user_id']; ?>">
+      </form>
     </div>
   </div>
 </div>
@@ -95,4 +104,33 @@ $comments = $comments->fetchAll(PDO::FETCH_OBJ);
       $("body").load("show.php?id=<?php echo $_GET['id']; ?>")
     }, 4000);
   }
+  //Rating Sys
+  $(document).ready(function() {
+    $(".my-rating").starRating({
+      starSize: 25,
+      initialRating: <?php
+                      if (isset($rating->rating) AND isset($rating->user_id) AND $rating->user_id == $_SESSION['user_id'])  {
+                        echo $rating->rating;
+                      } else {
+                        echo '0';
+                      }
+                      ?>,
+      callback: function(currentRating, $el) {
+        $("#rating").val(currentRating);
+      }
+    });
+
+    $(".my-rating").click(function(e) {
+      e.preventDefault();
+      var formdata = $("#formdata").serialize() + '&insert=insert';
+      $.ajax({
+        type: "post",
+        url: 'insert-rating.php',
+        data: formdata,
+        success: function() {
+          // alert(formdata);
+        }
+      });
+    });
+  });
 </script>
